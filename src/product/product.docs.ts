@@ -7,6 +7,7 @@ import {
   ApiExtraModels,
 } from '@nestjs/swagger';
 import { ResProductDto, Product } from './dto/product.dto';
+import { ProductPaginateDto } from './dto/product-paginate.dto';
 
 export function CreateProductDocs(): MethodDecorator {
   return applyDecorators(
@@ -100,6 +101,35 @@ export function DeleteProductDocs(): MethodDecorator {
       description: 'Delete product successfully',
       schema: {
         allOf: [{ $ref: getSchemaPath(ResProductDto) }],
+      },
+    }),
+  );
+}
+
+export function ProductPaginateDocs(): MethodDecorator {
+  return applyDecorators(
+    ApiBearerAuth(),
+    ApiOperation({ summary: 'Get paginated products' }),
+    ApiExtraModels(ProductPaginateDto, Product),
+    ApiResponse({
+      status: HttpStatus.BAD_REQUEST,
+      description: 'Validation error',
+    }),
+    ApiResponse({
+      status: HttpStatus.OK,
+      description: 'Paginated products retrieved successfully',
+      schema: {
+        allOf: [
+          { $ref: getSchemaPath(ProductPaginateDto) },
+          {
+            properties: {
+              data: {
+                type: 'array',
+                items: { $ref: getSchemaPath(Product) },
+              },
+            },
+          },
+        ],
       },
     }),
   );

@@ -17,14 +17,16 @@ import {
   CreateProductDocs,
   DeleteProductDocs,
   GetProductDocs,
+  ProductPaginateDocs,
   UpdateProductDocs,
 } from './product.docs';
 import { GetUser } from '../common/decorators/get-user.decorator';
 import { ResponseDto } from 'src/dto/response.dto';
+import { ProductPaginateDto } from './dto/product-paginate.dto';
 
-@ApiTags('products')
+@ApiTags('product')
 @ApiBearerAuth('access-token')
-@Controller('products')
+@Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
@@ -82,6 +84,18 @@ export class ProductController {
       status_code: HttpStatus.OK,
       message: 'Product deleted successfully',
       data: null,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('paginate')
+  @ProductPaginateDocs()
+  async productPaginate(@Body() dto: ProductPaginateDto): Promise<ResponseDto> {
+    const data = await this.productService.productPaginate(dto);
+    return new ResponseDto({
+      status_code: HttpStatus.OK,
+      message: 'Products retrieved successfully',
+      data,
     });
   }
 }
