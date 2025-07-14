@@ -7,10 +7,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const configService = app.get(ConfigService);
+  const appEnv = configService.get<string>('APP_ENV') || 'no app env';
+  const appName = configService.get<string>('APP_NAME') || 'no app name';
   const version = configService.get<string>('VERSION') || 'no version';
 
   const config = new DocumentBuilder()
-    .setTitle('Nest API')
+    .setTitle(appEnv + '-' + appName)
     .setDescription('')
     .setVersion(version)
     .addBearerAuth(
