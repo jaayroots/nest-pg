@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 
 export class ResProductDto<T> {
   @ApiProperty()
@@ -12,9 +19,12 @@ export class ResProductDto<T> {
   data: T;
 }
 
-export class ReqProductDto {
+class TranslationDto {
+  @ApiProperty({ example: 'en', description: 'Locale code (e.g., en, th)' })
+  @IsString()
+  locale: string;
+
   @ApiProperty({ example: 'iPhone 15', description: 'Product name' })
-  @IsNotEmpty()
   @IsString()
   name: string;
 
@@ -26,10 +36,20 @@ export class ReqProductDto {
   @IsOptional()
   @IsString()
   description?: string;
-
+}
+export class ReqProductDto {
   @ApiProperty({ example: 39900, description: 'Product price' })
   @IsNumber()
   price: number;
+
+  @ApiProperty({
+    type: [TranslationDto],
+    description: 'List of product translations by locale',
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => TranslationDto)
+  translations: TranslationDto[];
 }
 
 export class Product {
@@ -37,10 +57,7 @@ export class Product {
   id: string;
 
   @ApiProperty()
-  name: string;
-
-  @ApiProperty()
-  description: string;
+  slug: string;
 
   @ApiProperty()
   price: number;
@@ -56,4 +73,7 @@ export class Product {
 
   @ApiProperty()
   updatedBy: string;
+
+  @ApiProperty({ type: [TranslationDto] })
+  translations: TranslationDto[];
 }

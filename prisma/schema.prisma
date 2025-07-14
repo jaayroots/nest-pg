@@ -33,14 +33,32 @@ model Token {
 }
 
 model Product {
+  id           String               @id @default(uuid())
+  slug         String
+  price        Float
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  deletedAt    DateTime?
+  createdBy    String
+  updatedBy    String
+  deletedBy    String?
+  translations ProductTranslation[]
+}
+
+model ProductTranslation {
   id          String    @id @default(uuid())
+  productId   String
+  locale      String
   name        String
   description String?
-  price       Float
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
-  createdBy   String
-  updatedBy   String
+  createdBy   String?
+  updatedBy   String?
   deletedBy   String?
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([productId, locale])
 }
