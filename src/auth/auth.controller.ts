@@ -1,4 +1,3 @@
-// src/auth/auth.controller.ts
 import { Controller, Post, Body, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -27,7 +26,6 @@ export class AuthController {
   @Post('login')
   @ApiLoginDocs()
   async login(@Body() dto: LoginDto) {
-    // คืนค่า token ตรงๆ ให้ client
     return this.authService.login(dto);
   }
 }
