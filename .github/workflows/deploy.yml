@@ -10,22 +10,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Set up SSH key
-        uses: webfactory/ssh-agent@v0.5.4
-        with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
-
-      - name: Copy project files to EC2
+      - name: Setup SSH Key
         run: |
-          rsync -avz --delete --exclude node_modules --exclude .git ./ ubuntu@YOUR_EC2_IP:~/nest-pg
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: SSH and deploy docker-compose
+      - name: Sync Project to EC2
         run: |
-          ssh ubuntu@YOUR_EC2_IP << 'EOF'
+          rsync -avz --delete --exclude node_modules --exclude .git ./ ubuntu@${{ secrets.EC2_HOST }}:~/nest-pg
+
+      - name: Run Docker Compose on EC2
+        run: |
+          ssh ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             cd ~/nest-pg
-            docker-compose pull
-            docker-compose up -d --build
+            cp .env.example .env
+            docker compose down
+            docker compose up -d --build
           EOF
