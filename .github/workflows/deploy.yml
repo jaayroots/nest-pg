@@ -9,6 +9,16 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    env: # ใช้เพื่อดึง secrets / vars มาเป็น environment variable
+      DB_HOST: ${{ vars.DB_HOST }}
+      DB_PORT: ${{ vars.DB_PORT }}
+      DB_NAME: ${{ vars.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASS: ${{ secrets.DB_PASS }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      JWT_EXPIRES_IN: ${{ vars.JWT_EXPIRES_IN }}
+      EC2_HOST: ${{ secrets.EC2_HOST }}
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -19,7 +29,7 @@ jobs:
           mkdir -p /home/runner/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > /home/runner/.ssh/id_rsa
           chmod 600 /home/runner/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> /home/runner/.ssh/known_hosts
+          ssh-keyscan -H "$EC2_HOST" >> /home/runner/.ssh/known_hosts
         shell: bash
 
       - name: Sync Project to EC2
@@ -28,35 +38,36 @@ jobs:
             --exclude node_modules \
             --exclude .git \
             --exclude .env \
-            ./ ubuntu@${{ secrets.EC2_HOST }}:~/nest-pg
+            ./ ubuntu@$EC2_HOST:~/nest-pg
 
       - name: Generate .env and Deploy on EC2
         run: |
-          ssh -tt -o ServerAliveInterval=60 ubuntu@${{ secrets.EC2_HOST }} << EOF
+          ssh -tt -o ServerAliveInterval=60 ubuntu@$EC2_HOST << 'EOF'
             set -e
             cd ~/nest-pg
 
-            echo "DB_HOST=${DB_HOST}" > .env
-            echo "DB_USER=${DB_USER}" >> .env
-            echo "DB_PASS=${DB_PASS}" >> .env
-            echo "DB_PORT=${DB_PORT}" >> .env
-            echo "DATABASE_URL=postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASS }}@${{ vars.DB_HOST }}:${{ vars.DB_PORT }}/${{ vars.DB_NAME }}" >> .env
-            echo "JWT_SECRET=${secrets.JWT_SECRET}" >> .env
-            echo "JWT_EXPIRES_IN=${vars.JWT_EXPIRES_IN}" >> .env
+            cat <<EOT > .env
+            DB_HOST=${DB_HOST}
+            DB_USER=${DB_USER}
+            DB_PASS=${DB_PASS}
+            DB_PORT=${DB_PORT}
+            DATABASE_URL=postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+            JWT_SECRET=${JWT_SECRET}
+            JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+            EOT
 
-            docker compose down || true
-            docker compose up -d --build
+                        docker compose down || true
+                        docker compose up -d --build
 
-            echo "⌛ Waiting for app to be ready..."
-            for i in {1..30}; do
-              if curl -s http://localhost:3000/docs > /dev/null; then
-                echo "✅ App is up and running"
-                break
-              fi
-              sleep 2
-            done
+                        echo "⌛ Waiting for app to be ready..."
+                        for i in {1..30}; do
+                          if curl -s http://localhost:3000/docs > /dev/null; then
+                            echo "✅ App is up and running"
+                            break
+                          fi
+                          sleep 2
+                        done
 
-            docker compose ps
-
-            exit 0
-          EOF
+                        docker compose ps
+                        exit 0
+                      EOF
