@@ -40,7 +40,7 @@ jobs:
             echo "DB_USER=${DB_USER}" >> .env
             echo "DB_PASS=${DB_PASS}" >> .env
             echo "DB_PORT=${DB_PORT}" >> .env
-            echo "DATABASE_URL=postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}" >> .env
+            echo "DATABASE_URL=postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASS }}@${{ vars.DB_HOST }}:${{ vars.DB_PORT }}/${{ vars.DB_NAME }}" >> .env
             echo "JWT_SECRET=${JWT_SECRET}" >> .env
             echo "JWT_EXPIRES_IN=${JWT_EXPIRES_IN}" >> .env
 
