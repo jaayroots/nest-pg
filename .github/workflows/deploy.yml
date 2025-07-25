@@ -41,10 +41,22 @@ jobs:
             echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env
             echo "DB_PORT=${{ vars.DB_PORT }}" >> .env
             echo "DATABASE_URL=postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASS }}@${{ vars.DB_HOST }}:${{ vars.DB_PORT }}/${{ vars.DB_NAME }}" >> .env
-
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
             echo "JWT_EXPIRES_IN=${{ vars.JWT_EXPIRES_IN }}" >> .env
 
-            docker compose down
+            docker compose down || true
             docker compose up -d --build
+
+            echo "⌛ Waiting for app to be ready..."
+            for i in {1..30}; do
+              if curl -s http://localhost:3000/docs > /dev/null; then
+                echo "✅ App is up and running"
+                exit 0
+              fi
+              sleep 2
+            done
+
+            echo "❌ App did not start in time, showing logs"
+            docker compose logs
+            exit 1
           EOF
