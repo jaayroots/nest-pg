@@ -57,5 +57,4 @@ jobs:
 
             echo "✅ Deploy done"
             exit 0
-EOF
         shell: bash
