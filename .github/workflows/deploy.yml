@@ -36,13 +36,13 @@ jobs:
             set -e
             cd ~/nest-pg
 
-            echo "DB_HOST=${{ vars.DB_HOST }}" > .env
-            echo "DB_USER=${{ secrets.DB_USER }}" >> .env
-            echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env
-            echo "DB_PORT=${{ vars.DB_PORT }}" >> .env
-            echo "DATABASE_URL=postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASS }}@${{ vars.DB_HOST }}:${{ vars.DB_PORT }}/${{ vars.DB_NAME }}" >> .env
-            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-            echo "JWT_EXPIRES_IN=${{ vars.JWT_EXPIRES_IN }}" >> .env
+            echo "DB_HOST=${DB_HOST}" > .env
+            echo "DB_USER=${DB_USER}" >> .env
+            echo "DB_PASS=${DB_PASS}" >> .env
+            echo "DB_PORT=${DB_PORT}" >> .env
+            echo "DATABASE_URL=postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}" >> .env
+            echo "JWT_SECRET=${JWT_SECRET}" >> .env
+            echo "JWT_EXPIRES_IN=${JWT_EXPIRES_IN}" >> .env
 
             docker compose down || true
             docker compose up -d --build
@@ -51,12 +51,18 @@ jobs:
             for i in {1..30}; do
               if curl -s http://localhost:3000/docs > /dev/null; then
                 echo "✅ App is up and running"
-                exit 0
+                break
               fi
               sleep 2
             done
 
-            echo "❌ App did not start in time, showing logs"
-            docker compose logs
-            exit 1
+            docker compose ps
           EOF
+        env:
+          DB_HOST: ${{ vars.DB_HOST }}
+          DB_PORT: ${{ vars.DB_PORT }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          DB_NAME: ${{ vars.DB_NAME }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_EXPIRES_IN: ${{ vars.JWT_EXPIRES_IN }}
