@@ -55,4 +55,6 @@ jobs:
             docker compose ps
 
             echo "✅ Deploy done"
-          EOF
+
+            exit 0
+EOF
