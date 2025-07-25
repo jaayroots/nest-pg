@@ -57,6 +57,8 @@ jobs:
             done
 
             docker compose ps
+
+            exit 0
           EOF
         env:
           DB_HOST: ${{ vars.DB_HOST }}
