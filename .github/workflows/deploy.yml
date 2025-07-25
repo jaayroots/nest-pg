@@ -30,11 +30,20 @@ jobs:
             --exclude .env \
             ./ ubuntu@${{ secrets.EC2_HOST }}:~/nest-pg
 
-      - name: Run Docker Compose on EC2
+      - name: Generate .env and Deploy on EC2
         run: |
-          ssh -tt -o ServerAliveInterval=60 ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh -tt -o ServerAliveInterval=60 ubuntu@${{ secrets.EC2_HOST }} << EOF
+            set -e
             cd ~/nest-pg
-            cp .env.example .env
+
+            # สร้าง .env จาก secret
+            cat > .env << EOL
+DB_HOST=${{ secrets.DB_HOST }}
+DB_USER=${{ secrets.DB_USER }}
+DB_PASS=${{ secrets.DB_PASS }}
+DB_PORT=${{ secrets.DB_PORT }}
+EOL
+
             docker compose down
             docker compose up -d --build
           EOF
