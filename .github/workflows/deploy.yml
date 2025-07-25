@@ -36,10 +36,12 @@ jobs:
             set -e
             cd ~/nest-pg
 
-            echo "DB_HOST=${{ secrets.DB_HOST }}" > .env
+            echo "DB_HOST=${{ vars.DB_HOST }}" > .env
             echo "DB_USER=${{ secrets.DB_USER }}" >> .env
             echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env
-            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+            echo "DB_PORT=${{ vars.DB_PORT }}" >> .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "JWT_EXPIRES_IN=${{ vars.JWT_EXPIRES_IN }}" >> .env
 
             docker compose down
             docker compose up -d --build
