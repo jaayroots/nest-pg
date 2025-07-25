@@ -33,26 +33,27 @@ jobs:
       - name: Generate .env and Deploy on EC2
         run: |
           ssh -tt -o ServerAliveInterval=60 ubuntu@${{ secrets.EC2_HOST }} << EOF
-set -e
-cd ~/nest-pg
+            set -e
+            cd ~/nest-pg
 
-echo "DB_HOST=${{ vars.DB_HOST }}" > .env
-echo "DB_USER=${{ secrets.DB_USER }}" >> .env
-echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env
-echo "DB_PORT=${{ vars.DB_PORT }}" >> .env
-echo "DATABASE_URL=postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASS }}@${{ vars.DB_HOST }}:${{ vars.DB_PORT }}/${{ vars.DB_NAME }}" >> .env
+            echo "DB_HOST=${{ vars.DB_HOST }}" > .env
+            echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+            echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env
+            echo "DB_PORT=${{ vars.DB_PORT }}" >> .env
+            echo "DATABASE_URL=postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASS }}@${{ vars.DB_HOST }}:${{ vars.DB_PORT }}/${{ vars.DB_NAME }}" >> .env
 
-echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-echo "JWT_EXPIRES_IN=${{ vars.JWT_EXPIRES_IN }}" >> .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "JWT_EXPIRES_IN=${{ vars.JWT_EXPIRES_IN }}" >> .env
 
-echo "🧹 Stopping old containers (ignore if none running)..."
-docker compose down || true
+            echo "🧹 Stopping old containers (ignore if none running)..."
+            docker compose down || true
 
-echo "🚀 Building and starting containers..."
-docker compose up -d --build
+            echo "🚀 Building and starting containers..."
+            docker compose up -d --build
 
-echo "📦 Checking running containers..."
-docker compose ps
+            echo "📦 Checking running containers..."
+            docker compose ps
 
-echo "✅ Deploy done"
-EOF
+            echo "✅ Deploy done"
+          EOF
+        shell: bash
