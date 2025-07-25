@@ -29,10 +29,11 @@ jobs:
             --exclude .git \
             --exclude .env \
             ./ ubuntu@${{ secrets.EC2_HOST }}:~/nest-pg
+        shell: bash
 
       - name: Generate .env and Deploy on EC2
         run: |
-          ssh -tt -o ServerAliveInterval=60 ubuntu@${{ secrets.EC2_HOST }} << EOF
+          ssh -o ServerAliveInterval=60 ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             set -e
             cd ~/nest-pg
 
@@ -46,14 +47,15 @@ jobs:
             echo "JWT_EXPIRES_IN=${{ vars.JWT_EXPIRES_IN }}" >> .env
 
             echo "🧹 Stopping old containers (ignore if none running)..."
-            docker compose down || true
+            docker compose down --timeout 10 || true
 
             echo "🚀 Building and starting containers..."
-            docker compose up -d --build
+            docker compose up -d --build --remove-orphans
 
             echo "📦 Checking running containers..."
             docker compose ps
 
             echo "✅ Deploy done"
-          EOF
+            exit 0
+EOF
         shell: bash
